@@ -7,7 +7,7 @@ namespace T20Manager.Desktop;
 
 public partial class MainWindow : Window
 {
-    private const string RepoAtualizacoes = "https://github.com/SEU_USUARIO/SEU_REPOSITORIO";
+    private const string RepoAtualizacoes = "https://github.com/JpDiniz-dev/T20Manager";
 
     public MainWindow()
     {
