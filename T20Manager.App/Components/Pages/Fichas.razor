@@ -1,0 +1,385 @@
+@page "/fichas"
+@rendermode InteractiveServer
+@layout MesaLayout
+@using System.Globalization
+@using T20Manager.App.Services
+@using T20Manager.Core.Models
+@inject FichaRepositorio Repo
+@inject CombateService Combate
+
+<PageTitle>Fichas de ameaças</PageTitle>
+
+<div class="mesa @(Combate.Combatentes.Count > 0 ? "com-combate" : "")">
+
+    @if (Combate.Combatentes.Count > 0)
+    {
+        <section class="combate" aria-label="Combate">
+            <div class="combate-topo">
+                <strong>Combate</strong>
+                <label>Valor
+                    <input type="number" min="1" @bind="delta" />
+                </label>
+                @if (confirmarEncerrar)
+                {
+                    <button type="button" class="perigo" @onclick="Encerrar">Confirmar: remover todos</button>
+                    <button type="button" @onclick="() => confirmarEncerrar = false">Cancelar</button>
+                }
+                else
+                {
+                    <button type="button" @onclick="() => confirmarEncerrar = true">Encerrar combate</button>
+                }
+            </div>
+
+            <ul class="cartas">
+                @foreach (var c in Combate.Combatentes)
+                {
+                    var caido = c.Ficha.Vida.Atual <= 0;
+                    <li @key="c.Id" class="carta @(combatente?.Id == c.Id ? "ativa" : "") @(caido ? "caido" : "")">
+                        <button type="button" class="carta-corpo" @onclick="() => SelecionarCombatente(c)">
+                            <span class="nome">@c.Nome</span>
+                            <span class="pv">@c.Ficha.Vida.Atual<small> / @c.Ficha.Vida.Max</small></span>
+                            <span class="mini-barra"><span style="width:@(Pct(c.Ficha.Vida))%"></span></span>
+                            @if (caido)
+                            {
+                                <span class="estado">Caído</span>
+                            }
+                        </button>
+                        <div class="carta-acoes">
+                            <button type="button" class="dano" @onclick="() => Ajustar(c.Ficha.Vida, -1)">Dano</button>
+                            <button type="button" class="cura" @onclick="() => Ajustar(c.Ficha.Vida, 1)">Cura</button>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+
+    <aside class="lista" aria-label="Lista de fichas">
+        <div class="filtros">
+    <input type="search" placeholder="Buscar por nome ou pasta" aria-label="Buscar"
+           @bind="busca" @bind:event="oninput" />
+
+    <select aria-label="Livro" @bind="livro">
+        <option value="">Todos os livros</option>
+        @foreach (var l in Repo.Livros)
+        {
+            <option value="@l">@l</option>
+        }
+    </select>
+
+    <div class="filtro-nd">
+        <label>ND de
+            <select aria-label="ND mínimo" @bind="ndMin">
+                <option value="">Qualquer</option>
+                @foreach (var n in Repo.NDs) { <option value="@n">@n</option> }
+            </select>
+        </label>
+        <label>até
+            <select aria-label="ND máximo" @bind="ndMax">
+                <option value="">Qualquer</option>
+                @foreach (var n in Repo.NDs) { <option value="@n">@n</option> }
+            </select>
+        </label>
+    </div>
+
+    @if (FiltrosAtivos)
+    {
+        <button type="button" class="limpar" @onclick="LimparFiltros">Limpar filtros</button>
+    }
+</div>
+
+        @{ var visiveis = Filtradas(); }
+
+        @if (Repo.Todas.Count == 0)
+        {
+            <p class="contagem">Nenhuma ficha na pasta Fichas. Rode o importador primeiro.</p>
+        }
+        else
+        {
+            <p class="contagem">@visiveis.Count de @Repo.Todas.Count fichas</p>
+        }
+
+        <ul>
+            @foreach (var e in visiveis.Take(limite))
+            {
+                <li @key="e.Id">
+                    <button type="button" class="item @(combatente is null && atual?.Id == e.Id ? "ativa" : "")"
+                            @onclick="() => Selecionar(e)">
+                        <span class="nome">@e.Ficha.Nome</span>
+                        <span class="meta">@(e.Origem == "" ? "Sem pasta" : e.Origem)</span>
+                    </button>
+                </li>
+            }
+        </ul>
+
+        @if (visiveis.Count > limite)
+        {
+            <p class="contagem">Mostrando as primeiras @limite. Refine a busca.</p>
+        }
+    </aside>
+
+    <main class="ficha">
+        @if (Exibida is null)
+        {
+            <div class="vazio">
+                <h2>Escolha uma ficha</h2>
+                <p>Use a busca ou o filtro de livro na lista ao lado.</p>
+            </div>
+        }
+        else
+        {
+            var f = Exibida;
+
+            <header>
+                <h1>@(combatente?.Nome ?? f.Nome)</h1>
+                <p class="tipo">@f.Tipo</p>
+                <p class="origem">@OrigemDe(f)</p>
+            </header>
+
+            <section class="vitais" aria-label="Vida e mana">
+                <div class="vital vida">
+                    <div class="rotulo">Vida</div>
+                    <div class="valor">@f.Vida.Atual<span> / @f.Vida.Max</span></div>
+                    <div class="barra"><div style="width:@(Pct(f.Vida))%"></div></div>
+                </div>
+
+                @if (f.Mana.Max > 0)
+                {
+                    <div class="vital mana">
+                        <div class="rotulo">Mana</div>
+                        <div class="valor">@f.Mana.Atual<span> / @f.Mana.Max</span></div>
+                        <div class="barra"><div style="width:@(Pct(f.Mana))%"></div></div>
+                    </div>
+                }
+
+                <div class="controles">
+                    @if (combatente is not null)
+                    {
+                        <label>Valor
+                            <input type="number" min="1" @bind="delta" />
+                        </label>
+                        <button type="button" class="dano" @onclick="() => Ajustar(f.Vida, -1)">Dano</button>
+                        <button type="button" class="cura" @onclick="() => Ajustar(f.Vida, 1)">Cura</button>
+                        @if (f.Mana.Max > 0)
+                        {
+                            <button type="button" class="gasto" @onclick="() => Ajustar(f.Mana, -1)">Gastar mana</button>
+                            <button type="button" class="recupera" @onclick="() => Ajustar(f.Mana, 1)">Recuperar mana</button>
+                        }
+                        <button type="button" @onclick="() => Restaurar(f)">Restaurar tudo</button>
+                        <button type="button" @onclick="RemoverDoCombate">Remover do combate</button>
+                    }
+                    else
+                    {
+                        <label>Quantidade
+                            <input type="number" min="1" max="20" @bind="qtd" />
+                        </label>
+                        <button type="button" class="adicionar" @onclick="() => AdicionarAoCombate(f)">Adicionar ao combate</button>
+                    }
+                </div>
+            </section>
+
+            <dl class="fatos">
+                @foreach (var (rotulo, valor) in Fatos(f))
+                {
+                    <div>
+                        <dt>@rotulo</dt>
+                        <dd>@valor</dd>
+                    </div>
+                }
+            </dl>
+
+            @if (f.Atributos.Count > 0)
+            {
+                <section class="atributos" aria-label="Atributos">
+                    @foreach (var (chave, valor) in f.Atributos)
+                    {
+                        <div>
+                            <span>@Cap(chave)</span>
+                            <strong>@Sinal(valor)</strong>
+                        </div>
+                    }
+                </section>
+            }
+
+            @if (f.Ataques.Count > 0)
+            {
+                <h2>Ataques</h2>
+                <div class="rolagem">
+                    <table>
+                        <thead>
+                            <tr><th>Ataque</th><th>Teste</th><th>Dano</th><th>Crítico</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in f.Ataques)
+                            {
+                                <tr>
+                                    <td>@a.Nome@if (a.Distancia){<span class="tipodano">À distância</span>}</td>
+                                    <td>@a.Bonus</td>
+                                    <td class="forte">@a.Dano<span class="tipodano">@a.TipoDano</span></td>
+                                    <td>@a.Critico</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (f.Habilidades.Count > 0)
+            {
+                <div class="titulo-linha">
+                    <h2>Habilidades</h2>
+                    <button type="button" class="neutro" @onclick="() => abrirTodas = !abrirTodas">
+                        @(abrirTodas ? "Fechar todas" : "Abrir todas")
+                    </button>
+                </div>
+                @foreach (var h in f.Habilidades)
+                {
+                    <details open="@abrirTodas">
+                        <summary>@h.Nome</summary>
+                        <p>@h.Descricao</p>
+                    </details>
+                }
+            }
+
+            @if (f.Pericias.Count > 0)
+            {
+                <h2>Perícias</h2>
+                <details>
+                    <summary>Ver as @f.Pericias.Count perícias</summary>
+                    <ul class="pericias">
+                        @foreach (var p in f.Pericias.OrderBy(p => NomePericia(p.Key)))
+                        {
+                            <li><span>@NomePericia(p.Key)</span><strong>@p.Value</strong></li>
+                        }
+                    </ul>
+                </details>
+            }
+        }
+    </main>
+</div>
+
+@code {
+    const int limite = 200;
+
+    string busca = "";
+    string livro = "";
+    FichaEntrada? atual;          // ficha da biblioteca (modelo)
+    Combatente? combatente;       // cópia em combate
+    int delta = 1;
+    int qtd = 1;
+    bool abrirTodas;
+    bool confirmarEncerrar;
+
+    // O que o painel mostra: a cópia em combate tem prioridade sobre o modelo
+    FichaT20? Exibida => combatente?.Ficha ?? atual?.Ficha;
+
+    static readonly Dictionary<string, string> NomesPericia = new()
+    {
+        ["enganacao"] = "Enganação",
+        ["intimidacao"] = "Intimidação",
+        ["intuicao"] = "Intuição",
+        ["investigacao"] = "Investigação",
+        ["percepcao"] = "Percepção",
+        ["religiao"] = "Religião",
+        ["sobrevivencia"] = "Sobrevivência",
+        ["oficio"] = "Ofício",
+        ["atuacao"] = "Atuação",
+    };
+
+    List<FichaEntrada> Filtradas()
+    {
+        var q = busca.Trim();
+        return Repo.Todas.Where(e =>
+            (livro == "" || e.Livro == livro) && NdOk(e) &&
+            (q == "" || Contem(e.Ficha.Nome, q) || Contem(e.Origem, q))).ToList();
+    }
+
+    // Busca sem diferenciar maiúsculas nem acentos ("dragao" acha "Dragão")
+    static bool Contem(string texto, string trecho) =>
+        CultureInfo.InvariantCulture.CompareInfo.IndexOf(
+            texto, trecho, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0;
+
+    void Selecionar(FichaEntrada e)
+    {
+        atual = e;
+        combatente = null;
+        abrirTodas = false;
+    }
+
+    void SelecionarCombatente(Combatente c)
+    {
+        combatente = c;
+        abrirTodas = false;
+    }
+
+    void AdicionarAoCombate(FichaT20 modelo) => Combate.Adicionar(modelo, qtd);
+
+    void RemoverDoCombate()
+    {
+        if (combatente is null) return;
+        Combate.Remover(combatente.Id);
+        combatente = null;
+    }
+
+    void Encerrar()
+    {
+        Combate.Limpar();
+        combatente = null;
+        confirmarEncerrar = false;
+    }
+
+    void Ajustar(Recurso r, int sinal)
+    {
+        var teto = r.Max > 0 ? r.Max : int.MaxValue;
+        r.Atual = Math.Clamp(r.Atual + sinal * delta, 0, teto);
+    }
+
+    static void Restaurar(FichaT20 f)
+    {
+        if (f.Vida.Max > 0) f.Vida.Atual = f.Vida.Max;
+        if (f.Mana.Max > 0) f.Mana.Atual = f.Mana.Max;
+    }
+
+    static int Pct(Recurso r) =>
+        r.Max <= 0 ? 0 : (int)Math.Round(Math.Clamp(100.0 * r.Atual / r.Max, 0, 100));
+
+    static string OrigemDe(FichaT20 f) => f.Origem is "." ? "" : f.Origem;
+
+    static IEnumerable<(string Rotulo, string Valor)> Fatos(FichaT20 f) =>
+        new[]
+        {
+            ("ND", f.ND),
+            ("Defesa", f.Defesa.ToString()),
+            ("Iniciativa", f.Iniciativa),
+            ("Percepção", f.Percepcao),
+            ("Fortitude", f.Fortitude),
+            ("Reflexos", f.Reflexos),
+            ("Vontade", f.Vontade),
+            ("Deslocamento", f.Deslocamento),
+            ("Sentidos", f.Sentidos),
+            ("Tesouro", f.Tesouro),
+        }.Where(i => !string.IsNullOrWhiteSpace(i.Item2));
+
+    static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
+
+    static string NomePericia(string chave) =>
+        NomesPericia.TryGetValue(chave, out var nome) ? nome : Cap(chave);
+
+    static string Sinal(int n) => n >= 0 ? $"+{n}" : $"−{Math.Abs(n)}";
+
+            string ndMin = "";
+    string ndMax = "";
+
+    bool FiltrosAtivos => busca != "" || livro != "" || ndMin != "" || ndMax != "";
+
+    void LimparFiltros() { busca = ""; livro = ""; ndMin = ""; ndMax = ""; }
+
+    bool NdOk(FichaEntrada e)
+    {
+        if (ndMin == "" && ndMax == "") return true;
+        if (double.IsNaN(e.Nd)) return false;   // sem ND válido, some quando há filtro
+        if (ndMin != "" && e.Nd < FichaRepositorio.NdValor(ndMin)) return false;
+        if (ndMax != "" && e.Nd > FichaRepositorio.NdValor(ndMax)) return false;
+        return true;
+    }
+}

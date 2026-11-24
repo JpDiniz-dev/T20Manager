@@ -1,0 +1,20 @@
+html, body {
+    margin: 0;
+    height: 100%;
+    background: #171e24;
+    color: #ece7dc;
+}
+
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: 0.6rem 1.25rem;
+    background: #fff3b0;
+    color: #222;
+}
+
+#blazor-error-ui .dismiss { float: right; cursor: pointer; }

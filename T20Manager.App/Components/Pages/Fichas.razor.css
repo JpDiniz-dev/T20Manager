@@ -1,0 +1,650 @@
+.mesa {
+    --fundo: #171e24;
+    --painel: #212b33;
+    --painel-2: #2b3741;
+    --linha: #3a4853;
+    --texto: #ece7dc;
+    --suave: #a3b0b9;
+    --vida: #c9574d;
+    --mana: #4c8bd0;
+    --latao: #d4a64f;
+    --serifa: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    position: fixed;
+    inset: 0;
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    background: var(--fundo);
+    color: var(--texto);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+/* ---------- lista ---------- */
+.lista {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0.75rem;
+    border-right: 1px solid var(--linha);
+}
+
+.filtro-nd {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+    .filtro-nd label {
+        display: flex;
+        flex-direction: column;
+        color: var(--suave);
+        font-size: 0.8rem;
+    }
+
+    .filtro-nd select {
+        margin: 0.15rem 0 0.5rem;
+    }
+
+.limpar {
+    min-height: 36px;
+    margin-bottom: 0.25rem;
+    padding: 0 0.75rem;
+    background: transparent;
+    border: 1px solid var(--linha);
+    border-radius: 6px;
+    color: var(--suave);
+    font: inherit;
+    cursor: pointer;
+}
+
+.filtros input,
+.filtros select {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--painel);
+    border: 1px solid var(--linha);
+    border-radius: 6px;
+    color: inherit;
+    font: inherit;
+}
+
+.contagem {
+    margin: 0.25rem 0 0.5rem;
+    color: var(--suave);
+    font-size: 0.85rem;
+}
+
+.lista ul {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.item {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    background: transparent;
+    border: 0;
+    border-left: 3px solid transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+    .item:hover {
+        background: var(--painel);
+    }
+
+    .item.ativa {
+        background: var(--painel-2);
+        border-left-color: var(--latao);
+    }
+
+    .item .nome {
+        display: block;
+        font-weight: 600;
+    }
+
+    .item .meta {
+        display: block;
+        overflow: hidden;
+        color: var(--suave);
+        font-size: 0.8rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .item:focus-visible,
+    .controles button:focus-visible,
+    .filtros input:focus-visible,
+    .filtros select:focus-visible,
+    summary:focus-visible {
+        outline: 2px solid var(--latao);
+        outline-offset: 2px;
+    }
+
+/* ---------- ficha ---------- */
+.ficha {
+    min-height: 0;
+    padding: 1.5rem 2rem 3rem;
+    overflow-y: auto;
+}
+
+    .ficha > * {
+        max-width: 64rem;
+    }
+
+h1 {
+    margin: 0;
+    font-family: var(--serifa);
+    font-size: 2.2rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.tipo {
+    margin: 0.1rem 0 0;
+    color: var(--texto);
+}
+
+.origem {
+    margin: 0;
+    color: var(--suave);
+    font-size: 0.8rem;
+}
+
+h2 {
+    margin: 0;
+    color: var(--latao);
+    font-family: var(--serifa);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.ficha > h2,
+.titulo-linha {
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.titulo-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vazio {
+    margin: 20vh auto;
+    text-align: center;
+    color: var(--suave);
+}
+
+/* ---------- vida e mana ---------- */
+.vitais {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0;
+}
+
+.vital {
+    padding: 1rem 1.25rem;
+    background: var(--painel);
+    border: 1px solid var(--linha);
+    border-radius: 8px;
+}
+
+    .vital .rotulo {
+        color: var(--suave);
+        font-size: 0.9rem;
+    }
+
+    .vital .valor {
+        font-family: var(--serifa);
+        font-size: 3.4rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        line-height: 1.1;
+    }
+
+        .vital .valor span {
+            color: var(--suave);
+            font-size: 1.4rem;
+            font-weight: 400;
+        }
+
+.barra {
+    height: 10px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    background: #11171b;
+    border-radius: 5px;
+}
+
+    .barra div {
+        height: 100%;
+        transition: width 0.2s;
+    }
+
+.vida .barra div {
+    background: var(--vida);
+}
+
+.mana .barra div {
+    background: var(--mana);
+}
+
+.controles {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .controles label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--suave);
+    }
+
+    .controles input {
+        width: 5rem;
+        min-height: 44px;
+        padding: 0 0.5rem;
+        background: var(--painel);
+        border: 1px solid var(--linha);
+        border-radius: 6px;
+        color: var(--texto);
+        font: inherit;
+        font-size: 1.1rem;
+    }
+
+    .controles button,
+    .titulo-linha button {
+        min-height: 44px;
+        padding: 0 1rem;
+        background: var(--painel-2);
+        border: 1px solid var(--linha);
+        border-radius: 6px;
+        color: var(--texto);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .controles button:hover,
+        .titulo-linha button:hover {
+            filter: brightness(1.2);
+        }
+
+    .controles .dano {
+        background: #6b2a26;
+        border-color: var(--vida);
+    }
+
+    .controles .cura {
+        background: #25513a;
+        border-color: #4fa779;
+    }
+
+    .controles .gasto {
+        background: #25456b;
+        border-color: var(--mana);
+    }
+
+    .controles .recupera {
+        background: #2a5560;
+        border-color: #55a6b8;
+    }
+
+/* ---------- dados da ficha ---------- */
+.fatos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.75rem 1.5rem;
+    margin: 0 0 1.25rem;
+}
+
+    .fatos > div {
+        padding-top: 0.4rem;
+        border-top: 1px solid var(--linha);
+    }
+
+    .fatos dt {
+        color: var(--suave);
+        font-size: 0.8rem;
+    }
+
+    .fatos dd {
+        margin: 0;
+        font-weight: 600;
+    }
+
+.atributos {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+}
+
+    .atributos > div {
+        padding: 0.5rem 0;
+        background: var(--painel);
+        border: 1px solid var(--linha);
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .atributos span {
+        display: block;
+        color: var(--suave);
+        font-size: 0.8rem;
+    }
+
+    .atributos strong {
+        font-size: 1.3rem;
+        font-variant-numeric: tabular-nums;
+    }
+
+/* ---------- ataques ---------- */
+.rolagem {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    padding: 0.25rem 0.5rem;
+    color: var(--suave);
+    font-size: 0.85rem;
+    font-weight: 400;
+    text-align: left;
+}
+
+td {
+    padding: 0.55rem 0.5rem;
+    border-top: 1px solid var(--linha);
+    font-variant-numeric: tabular-nums;
+    vertical-align: top;
+}
+
+    td.forte {
+        font-weight: 600;
+    }
+
+.tipodano {
+    display: block;
+    color: var(--suave);
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+/* ---------- habilidades e perícias ---------- */
+details {
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--linha);
+}
+
+summary {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+details p {
+    max-width: 70ch;
+    margin: 0.5rem 0 0.25rem;
+    color: #d9d3c6;
+    white-space: pre-wrap;
+}
+
+.pericias {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    columns: 3 12rem;
+    list-style: none;
+}
+
+    .pericias li {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.15rem 0;
+        border-bottom: 1px dotted var(--linha);
+        break-inside: avoid;
+    }
+
+/* ---------- telas estreitas ---------- */
+@media (max-width: 760px) {
+    .mesa {
+        grid-template-columns: 1fr;
+        grid-template-rows: 40% 1fr;
+    }
+
+    .lista {
+        border-right: 0;
+        border-bottom: 1px solid var(--linha);
+    }
+
+    .ficha {
+        padding: 1rem;
+    }
+
+    .atributos {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .barra div {
+        transition: none;
+    }
+}
+
+/* ---------- faixa de combate ---------- */
+.mesa.com-combate {
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.combate {
+    grid-column: 1 / -1;
+    padding: 0.6rem 0.75rem;
+    background: var(--painel);
+    border-bottom: 1px solid var(--linha);
+}
+
+.combate-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+    .combate-topo strong {
+        color: var(--latao);
+        font-family: var(--serifa);
+        font-size: 1.1rem;
+    }
+
+    .combate-topo label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--suave);
+    }
+
+    .combate-topo input {
+        width: 4.5rem;
+        min-height: 40px;
+        padding: 0 0.5rem;
+        background: var(--fundo);
+        border: 1px solid var(--linha);
+        border-radius: 6px;
+        color: var(--texto);
+        font: inherit;
+    }
+
+    .combate-topo button {
+        min-height: 40px;
+        padding: 0 0.9rem;
+        background: var(--painel-2);
+        border: 1px solid var(--linha);
+        border-radius: 6px;
+        color: var(--texto);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .combate-topo .perigo {
+        background: #6b2a26;
+        border-color: var(--vida);
+    }
+
+.cartas {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0 0 0.25rem;
+    overflow-x: auto;
+    list-style: none;
+}
+
+.carta {
+    display: flex;
+    flex: 0 0 12rem;
+    flex-direction: column;
+    background: var(--fundo);
+    border: 1px solid var(--linha);
+    border-radius: 8px;
+}
+
+    .carta.ativa {
+        border-color: var(--latao);
+    }
+
+    .carta.caido {
+        opacity: 0.6;
+    }
+
+.carta-corpo {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.65rem 0.4rem;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+    .carta-corpo .nome {
+        display: block;
+        overflow: hidden;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .carta-corpo .pv {
+        display: block;
+        font-family: var(--serifa);
+        font-size: 1.6rem;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+    }
+
+        .carta-corpo .pv small {
+            color: var(--suave);
+            font-size: 0.9rem;
+        }
+
+    .carta-corpo .estado {
+        display: block;
+        margin-top: 0.15rem;
+        color: var(--vida);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+.mini-barra {
+    display: block;
+    height: 6px;
+    margin-top: 0.25rem;
+    overflow: hidden;
+    background: #11171b;
+    border-radius: 3px;
+}
+
+    .mini-barra span {
+        display: block;
+        height: 100%;
+        background: var(--vida);
+        transition: width 0.2s;
+    }
+
+.carta-acoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--linha);
+    border-radius: 0 0 7px 7px;
+    overflow: hidden;
+}
+
+    .carta-acoes button {
+        min-height: 40px;
+        border: 0;
+        color: var(--texto);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .carta-acoes .dano {
+        background: #6b2a26;
+    }
+
+    .carta-acoes .cura {
+        background: #25513a;
+    }
+
+    .carta-acoes button:hover {
+        filter: brightness(1.2);
+    }
+
+.controles .adicionar {
+    background: #4a3b17;
+    border-color: var(--latao);
+}
+
+.carta-corpo:focus-visible,
+.carta-acoes button:focus-visible,
+.combate-topo button:focus-visible,
+.combate-topo input:focus-visible {
+    outline: 2px solid var(--latao);
+    outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+    .mesa.com-combate {
+        grid-template-rows: auto 30% minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mini-barra span {
+        transition: none;
+    }
+}
